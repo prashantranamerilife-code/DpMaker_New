@@ -3,1171 +3,470 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DP Frame Studio</title>
+<title>DP Frame Maker — Admin</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
 
   :root{
     --paper:#232c49;
-    --panel:#232c49;
-    --ink:#000000;
-    --ink-soft:#ffffff;
-    --line:#eeeadf;
-    --top:#ffffff;
+    --panel:#2b3558;
+    --ink:#ffffff;
+    --ink-soft:#b7bedd;
+    --line:#3c4670;
     --accent:#5e6fff;
     --accent-soft:#4a518f;
-    --gold:#C0793A;
-    --gold-soft:#ffffff;
-    --error:#A3402F;
-    --error-bg:#FBEAE4;
-    --error-line:#E4B4A4;
+    --error:#ff8577;
+    --error-bg:#4a2a2a;
+    --error-line:#7a4040;
+    --ok:#7cd9a0;
   }
-
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
     background:var(--paper);
     color:var(--ink);
     font-family:'Inter',sans-serif;
-    min-height:100%;
+    min-height:100vh;
     padding:28px 20px 60px;
   }
-
-  .wrap{ max-width:960px; margin:0 auto; }
-
-  header.top{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:8px;
-    border-bottom:1px solid var(--top);
-    padding-bottom:16px;
-    margin-bottom:28px;
-  }
+  .wrap{ max-width:760px; margin:0 auto; }
   h1{
     font-family:'Fraunces',serif;
     font-weight:600;
-    font-size:clamp(26px,4vw,34px);
-    margin:0;
-    letter-spacing:-0.01em;
-    color: #ffffff;
+    font-size:clamp(22px,4vw,30px);
+    margin:0 0 4px;
   }
-  header.top p{
-    margin:0;
-    color:var(--top);
-    font-size:14px;
-  }
-
-  .layout{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(280px,340px);
-    gap:36px;
-    align-items:start;
-  }
-  @media (max-width:760px){
-    .layout{ grid-template-columns:1fr; }
+  header p{ margin:0 0 24px; color:var(--ink-soft); font-size:14px; }
+  header{
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px;
+    margin-bottom:24px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
   }
 
-  /* ---- Photo mount ---- */
-  .mount{
+  .panel{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:10px;
-    padding:28px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:16px;
-    
+    padding:24px;
+    margin-bottom:24px;
   }
-  .mat{
-    position:relative;
-    width:min(78vw,540px);
-    aspect-ratio:1/1;
-    /* background:
-      repeating-linear-gradient(45deg, #EFE9D8 0 8px, #F4EFE2 8px 16px); */
-    /* border:1px solid var(--line); */
-    border-radius:6px;
-    overflow:hidden;
-    cursor:grab;
-    touch-action:none;
-    user-select:none;
-    /* background: #ee5555; */
-  }
-  .mat.dragging{ cursor:grabbing; }
-
-  .clip{
-    position:absolute;
-    overflow:hidden;
-    background:transparent;
-    border-radius:50%;
-  }
-  .clip img{
-    position:absolute;
-    top:50%; left:50%;
-    max-width:none;
-    pointer-events:none;
-    transform-origin:center center;
-  }
-
-  .empty-state{
-    position:absolute; inset:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:10px; color:var(--ink-soft); text-align:center; padding:20px;
-    pointer-events:none;
-  }
-  .empty-state svg{ opacity:.55; }
-  .empty-state span{ font-size:13px; line-height:1.5; max-width:220px; }
-
-  #overlayCanvas{
-    position:absolute; inset:0;
-    pointer-events:none;
-  }
-
-  .hint{
-    font-size:12.5px;
-    color:var(--ink-soft);
-    text-align:center;
-    line-height:1.6;
-    max-width:300px;
-  }
-
-  /* ---- Controls ticket ---- */
-  .ticket{ display:flex; flex-direction:column; gap:22px; }
-  .field{ display:flex; flex-direction:column; gap:8px; }
-  .field-row{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-  }
-  label.field-label{
-    font-size:13px;
+  .panel h2{
+    font-size:16px;
+    margin:0 0 16px;
+    font-family:'Fraunces',serif;
     font-weight:600;
-    /* color:var(--ink); */
-    color: #ffffff;
-  }
-  .field-note{
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-  .value-tag{
-    font-size:12.5px;
-    /* color:var(--accent); */
-    font-weight:600;
-    font-variant-numeric:tabular-nums;
-    color:#ffffff
   }
 
-  input[type="range"]{
-    -webkit-appearance:none;
+  label{ font-size:13px; font-weight:600; display:block; margin-bottom:6px; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
     width:100%;
-    height:2px;
-    background:var(--line);
-    border-radius:2px;
-    outline:none;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#1c2440;
+    color:var(--ink);
+    margin-bottom:14px;
   }
-  input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;
-    width:16px; height:16px;
-    border-radius:50%;
-    background:var(--accent);
-    border:2px solid var(--panel);
-    box-shadow:0 0 0 1px var(--accent);
-    cursor:pointer;
-    margin-top:-7px;
+  input[type="file"]{
+    margin-bottom:14px;
+    color:var(--ink-soft);
+    font-size:13px;
   }
-  input[type="range"]::-moz-range-thumb{
-    width:16px; height:16px;
-    border-radius:50%;
-    background:var(--accent);
-    border:2px solid var(--panel);
-    box-shadow:0 0 0 1px var(--accent);
-    cursor:pointer;
-  }
-  input[type="range"]::-moz-range-track{
-    height:2px; background:var(--line); border-radius:2px;
-  }
-  input[type="range"]:disabled::-webkit-slider-thumb{ background:var(--line); box-shadow:none; }
-  input[type="range"]:disabled{ cursor:not-allowed; }
+  .row{ display:flex; gap:12px; }
+  .row > div{ flex:1; }
 
   .btn{
     font-family:'Inter',sans-serif;
     font-size:14px;
     font-weight:600;
-    border:1px solid var(--ink);
+    border:1px solid var(--accent);
     background:transparent;
-    /* color:var(--ink); */
-    color:#ffffff;
+    color:var(--ink);
     padding:10px 18px;
-    border-radius:3px;
-    cursor:pointer;
-    transition:background .15s ease, color .15s ease, opacity .15s ease;
-  }
-  .btn:hover:not(:disabled){ background:var(--ink); color:var(--panel); }
-  .btn:disabled{ opacity:.4; cursor:not-allowed; }
-
-  .btn-primary{
-    background:var(--accent);
-    border-color:var(--accent);
-    color:#fff;
     border-radius:999px;
-    padding:11px 22px;
-  }
-  .btn-primary:hover:not(:disabled){ background:var(--accent-soft); border-color:var(--accent-soft); color:#fff; }
-
-  .btn-whatsapp{
-    background:var(--ink);
-    border-color:var(--ink);
-    color:#fff;
-    width:100%;
-    padding:11px 18px;
-    border-radius:3px;
-  }
-  .btn-whatsapp:hover:not(:disabled){ background:#3a352c; }
-
-  .row-2{ display:flex; gap:10px; }
-  .row-2 .btn{ flex:1; }
-
-  select, input[type="tel"]{
-    font-family:'Inter',sans-serif;
-    font-size:14px;
-    padding:9px 10px;
-    border:1px solid var(--line);
-    border-radius:3px;
-    background:#fff;
-    color:var(--ink);
-  }
-  select:focus, input[type="tel"]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
-
-  .phone-row{ display:flex; gap:8px; }
-  .phone-row select{ flex:0 0 120px; }
-  .phone-row input{ flex:1; min-width:0; }
-
-  .divider{ border:none; border-top:1px solid var(--line); margin:2px 0; }
-
-  /* ---- frame image dropdown ---- */
-  .frame-row{
-    position:relative;
-    width:100%;
-  }
-
-  .frame-picker{
-    position:relative;
-    width:100%;
-  }
-
-  .frame-picker-button{
-    width:100%;
-    min-height:44px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:7px 12px;
-    border:1px solid var(--line);
-    border-radius:4px;
-    background:#fff;
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    font-size:14px;
     cursor:pointer;
-    text-align:left;
+    transition:background .15s ease, opacity .15s ease;
   }
+  .btn:hover:not(:disabled){ background:var(--accent-soft); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-primary{ background:var(--accent); }
+  .btn-primary:hover:not(:disabled){ background:#4c5cf0; }
+  .btn-danger{ border-color:var(--error); color:var(--error); }
+  .btn-danger:hover:not(:disabled){ background:var(--error-bg); }
+  .btn-small{ padding:6px 12px; font-size:12.5px; }
 
-  .frame-picker-button:focus{
-    outline:2px solid var(--accent);
-    outline-offset:1px;
-  }
+  .status{ font-size:13px; min-height:18px; margin-top:8px; }
+  .status.ok{ color:var(--ok); }
+  .status.error{ color:var(--error); }
+  .status.pending{ color:var(--ink-soft); }
 
-  .frame-selected{
+  .preview-wrap{
     display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:0;
-  }
-
-  .frame-selected img{
-    width:34px;
-    height:34px;
-    object-fit:contain;
-    flex:0 0 34px;
-    border-radius:50%;
-  }
-
-  .frame-selected span{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  .frame-chevron{
-    font-size:16px;
-    line-height:1;
-    transition:transform .15s ease;
-  }
-
-  .frame-picker.open .frame-chevron{
-    transform:rotate(180deg);
-  }
-
-  .frame-options{
-    position:absolute;
-    top:calc(100% + 6px);
-    left:0;
-    right:0;
-    z-index:50;
-    display:none;
-    max-height:250px;
-    overflow-y:auto;
-    padding:6px;
-    border:1px solid var(--line);
-    border-radius:6px;
-    background:#fff;
-    box-shadow:0 10px 28px rgba(0,0,0,.18);
-  }
-
-  .frame-picker.open .frame-options{
-    display:block;
-  }
-
-  .frame-option{
-    width:100%;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:8px 10px;
-    border:0;
-    border-radius:4px;
-    background:transparent;
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    font-size:14px;
-    cursor:pointer;
-    text-align:left;
-  }
-
-  .frame-option:hover,
-  .frame-option.active{
-    background:#f1f2f7;
-  }
-
-  .frame-option img{
-    width:46px;
-    height:46px;
-    object-fit:contain;
-    border-radius:50%;
-    flex:0 0 46px;
-  }
-
-  .frame-options-status{
-    padding:10px 12px;
-    font-size:12.5px;
-    color:#8a8a8a;
-  }
-  .frame-options-status.error{ color:var(--error); }
-
-  .frame-option .plain-preview{
-    width:46px;
-    height:46px;
-    border-radius:50%;
-    border:1px solid #c9c9c9;
-    background:#fff;
-    flex:0 0 46px;
-  }
-
-  /* Keep the original select as a form-compatible hidden value. */
-  #frameSelect{
-    position:absolute;
-    width:1px;
-    height:1px;
-    opacity:0;
-    pointer-events:none;
-  }
-
-  .status{
-    min-height:18px;
-    font-size:12.5px;
-    color:var(--accent);
-    font-weight:600;
-  }
-
-  input[type="file"]{ display:none; }
-
-  /* ---- toast notifications ---- */
-  .toast-stack{
-    position:fixed;
-    top:18px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:1000;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    width:min(92vw, 380px);
-  }
-  .toast{
-    display:flex;
+    gap:20px;
     align-items:flex-start;
-    gap:10px;
-    background:var(--error-bg);
-    border:1px solid var(--error-line);
-    color:var(--error);
-    padding:12px 14px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .preview-canvas-box{
+    position:relative;
+    width:180px;
+    height:180px;
+    flex:0 0 auto;
+    background:
+      repeating-conic-gradient(#33395c 0% 25%, #2a3054 0% 50%) 50% / 16px 16px;
+    border:1px solid var(--line);
     border-radius:6px;
-    font-size:13.5px;
-    line-height:1.5;
-    box-shadow:0 6px 18px rgba(0,0,0,0.08);
-    animation:toast-in .18s ease;
+    overflow:hidden;
   }
-  .toast strong{ display:block; font-size:13px; margin-bottom:1px; }
-  .toast .toast-close{
-    margin-left:auto;
-    background:none;
-    border:none;
-    color:var(--error);
-    cursor:pointer;
-    font-size:15px;
-    line-height:1;
-    padding:2px;
-    opacity:.7;
-  }
-  .toast .toast-close:hover{ opacity:1; }
-  @keyframes toast-in{
-    from{ opacity:0; transform:translateY(-6px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
+  .preview-canvas-box canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .geo-fields{ flex:1; min-width:220px; }
+  .geo-fields .row3{ display:flex; gap:8px; }
+  .geo-fields .row3 > div{ flex:1; }
+  .geo-note{ font-size:12px; color:var(--ink-soft); margin:-6px 0 14px; line-height:1.5; }
 
-  footer{
-    max-width:960px;
-    margin:44px auto 0;
-    padding-top:16px;
-    border-top:1px solid var(--line);
-    text-align:center;
-    color:var(--ink-soft);
-    font-size:12.5px;
-    line-height:1.8;
-  }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th{ color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.02em; }
+  td img{ width:40px; height:40px; object-fit:contain; border-radius:50%; background:#1c2440; }
+  .frame-actions{ display:flex; gap:8px; align-items:center; }
+  .empty-row td{ color:var(--ink-soft); text-align:center; padding:20px; }
+
+  .hidden{ display:none !important; }
+
+  a{ color:var(--accent); }
 </style>
 </head>
 <body>
-
-<div class="toast-stack" id="toastStack" aria-live="assertive"></div>
-
 <div class="wrap">
 
-  <header class="top">
-    <h1>DP Frame Maker</h1>
-    <!-- <p>Position, frame and export a display picture</p> -->
+  <header>
+    <div>
+      <h1>DP Frame Maker — Admin</h1>
+      <p>Upload frame artwork here; it appears in the app's "Select frame" dropdown automatically.</p>
+    </div>
+    <button class="btn btn-small hidden" id="signOutBtn" type="button">Sign out</button>
   </header>
 
-  <div class="layout">
-
-    <!-- Photo mount -->
-    <div class="mount">
-      <div class="mat" id="mat">
-        <div class="clip" id="clip">
-          <img id="photoImg" alt="" draggable="false" />
-        </div>
-        <canvas id="overlayCanvas"></canvas>
-        <div class="empty-state" id="emptyState">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <rect x="4" y="8" width="32" height="24" rx="2" stroke="#6B6355" stroke-width="1.6"/>
-            <circle cx="14" cy="17" r="3" stroke="#6B6355" stroke-width="1.6"/>
-            <path d="M6 27L15 19L22 25L27 20L34 27" stroke="#6B6355" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>  
-          <span>Upload a photo to begin — drag to reposition once it's loaded</span>
-        </div>
-      </div>
-      <!-- <p class="hint">Drag on the photo to reposition it. Pinch, or use the zoom control, for a closer fit.</p> -->
-    </div>
-
-    <!-- Controls -->
-    <div class="ticket">
-
-      <div class="field">
-        <label class="field-label">Upload photo</label>
-        <div>
-          <button class="btn btn-primary" id="chooseBtn" type="button">Choose image</button>
-          <input 
-          type="file" 
-          id="fileInput" 
-          accept="image/*" />
-        </div>
-        
-
-        <div>
-          <button class="btn btn-primary" id="openCamera" type="button">
-            Open Camera
-          </button>
-
-          <input
-            type="file"
-            id="cameraFileInput"
-            accept="image/*"
-            capture="user"
-            style="display:none;"
-          />
-        </div>
-        
-        <span class="field-note">JPG, PNG or WEBP · up to 5 MB</span>
-      </div>
-
-      <!-- <hr class="divider" /> -->
-
-      <div class="field">
-        <div class="field-row">
-          <label class="field-label" for="zoomRange">Zoom</label>
-          <span class="value-tag" id="zoomValue">1.0×</span>
-        </div>
-        <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1" disabled />
-      </div>
-
-      <div class="field">
-        <div class="field-row">
-          <label class="field-label" for="rotRange">Rotation</label>
-          <span class="value-tag" id="rotValue">0°</span>
-        </div>
-        <input type="range" id="rotRange" min="-180" max="180" step="1" value="0" disabled />
-      </div>
-
-      <div class="field">
-        <label class="field-label" for="frameSelect">Select frame</label>
-        <div class="frame-row">
-          <!-- Hidden select keeps the selected frame value available to the existing code.
-               Options beyond "plain" are added dynamically once frames load from Firebase. -->
-          <select id="frameSelect" aria-hidden="true" tabindex="-1">
-            <option value="plain">Plain circle (no frame)</option>
-          </select>
-
-          <div class="frame-picker" id="framePicker">
-            <button
-              class="frame-picker-button"
-              id="framePickerButton"
-              type="button"
-              aria-haspopup="listbox"
-              aria-expanded="false">
-              <span class="frame-selected" id="frameSelected">
-                <span class="plain-preview" style="width:34px;height:34px;display:block;"></span>
-                <span>Plain circle (no frame)</span>
-              </span>
-              <span class="frame-chevron">⌄</span>
-            </button>
-
-            <!-- Frame options are rendered dynamically from Firestore (see loadFramesFromFirebase()).
-                 "Plain circle" is the only option that always exists statically. -->
-            <div class="frame-options" id="frameOptions" role="listbox" aria-label="Frame options">
-              <button class="frame-option active" type="button" data-value="plain" role="option" aria-selected="true">
-                <span class="plain-preview"></span>
-                <span>Plain circle (no frame)</span>
-              </button>
-              <div class="frame-options-status" id="frameOptionsStatus">Loading frames…</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <hr class="divider" />
-
-      <div class="field">
-        <label class="field-label">Send to WhatsApp</label>
-        <div class="phone-row">
-          <select id="countryCode">
-            <option value="91">India (+91)</option>
-            <option value="1">USA/Canada (+1)</option>
-            <option value="44">UK (+44)</option>
-            <option value="971">UAE (+971)</option>
-            <option value="61">Australia (+61)</option>
-            <option value="65">Singapore (+65)</option>
-          </select>
-          <input type="tel" id="phoneInput" placeholder="Phone number (optional)" />
-        </div>
-        <button class="btn btn-whatsapp" id="shareBtn" type="button" disabled>Share on WhatsApp</button>
-      </div>
-
-      <div class="row-2">
-        <button class="btn" id="resetBtn" type="button" disabled>Reset</button>
-        <button class="btn" id="removeBtn" type="button" disabled>Remove photo</button>
-      </div>
-
-      <button class="btn btn-primary" id="downloadBtn" type="button" disabled style="width:100%;">Download image</button>
-
-      <p class="status" id="statusMsg" role="status" aria-live="polite"></p>
-
-    </div>
+  <!-- Sign-in gate -->
+  <div class="panel" id="signInPanel">
+    <h2>Admin sign-in</h2>
+    <label for="email">Email</label>
+    <input type="email" id="email" autocomplete="username" />
+    <label for="password">Password</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button class="btn btn-primary" id="signInBtn" type="button">Sign in</button>
+    <p class="status" id="authStatus"></p>
+    <p class="geo-note">
+      Admin accounts are created in the Firebase Console under
+      Authentication → Users — there's no public sign-up here on purpose.
+      See the README for setup steps.
+    </p>
   </div>
 
-  <footer>
-    © 2026 DP Frame Studio · Built for social-ready profile images
-  </footer>
+  <!-- Admin content (shown once signed in) -->
+  <div id="adminContent" class="hidden">
+
+    <div class="panel">
+      <h2>Upload a new frame</h2>
+      <label for="frameLabel">Frame name (shown in the dropdown)</label>
+      <input type="text" id="frameLabel" placeholder="e.g image name" />
+
+      <label for="frameFile">Frame image (square PNG with a transparent circular cutout)</label>
+      <input type="file" id="frameFile" accept="image/png" />
+
+      <div class="preview-wrap hidden" id="previewWrap">
+        <div class="preview-canvas-box">
+          <canvas id="previewCanvas" width="180" height="180"></canvas>
+        </div>
+        <div class="geo-fields">
+          <div class="row3">
+            <div>
+              <label for="cxField">Center X</label>
+              <input type="number" id="cxField" step="0.001" min="0" max="1" />
+            </div>
+            <div>
+              <label for="cyField">Center Y</label>
+              <input type="number" id="cyField" step="0.001" min="0" max="1" />
+            </div>
+            <div>
+              <label for="rField">Radius</label>
+              <input type="number" id="rField" step="0.001" min="0" max="0.5" />
+            </div>
+          </div>
+          <p class="geo-note" id="detectNote">
+            Detected automatically from the image's transparent area (shown as the red circle).
+            Adjust the numbers above if it doesn't look right, as fractions of the image width/height.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="uploadBtn" type="button" disabled>Upload frame</button>
+      <p class="status" id="uploadStatus"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Existing frames</h2>
+      <table>
+        <thead>
+          <tr><th>Preview</th><th>Name</th><th>Active</th><th></th></tr>
+        </thead>
+        <tbody id="framesTableBody">
+          <tr class="empty-row"><td colspan="4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
 </div>
 
 <script type="module">
   import { firebaseConfig } from './firebase-config.js';
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
   import {
-    getFirestore, collection, query, where, orderBy, getDocs
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+  import {
+    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc,
+    getDocs, orderBy, query, serverTimestamp
   } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+  import {
+    getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+  } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js';
 
-  const fbApp = initializeApp(firebaseConfig);
-  const db = getFirestore(fbApp);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
 
-  const mat = document.getElementById('mat');
-  const clip = document.getElementById('clip');
-  const photoImg = document.getElementById('photoImg');
-  const overlayCanvas = document.getElementById('overlayCanvas');
-  const emptyState = document.getElementById('emptyState');
-  const fileInput = document.getElementById('fileInput');
-  const chooseBtn = document.getElementById('chooseBtn');
-  const zoomRange = document.getElementById('zoomRange');
-  const rotRange = document.getElementById('rotRange');
-  const zoomValue = document.getElementById('zoomValue');
-  const rotValue = document.getElementById('rotValue');
-  const frameSelect = document.getElementById('frameSelect');
-  const resetBtn = document.getElementById('resetBtn');
-  const removeBtn = document.getElementById('removeBtn');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const shareBtn = document.getElementById('shareBtn');
-  const countryCode = document.getElementById('countryCode');
-  const phoneInput = document.getElementById('phoneInput');
-  const statusMsg = document.getElementById('statusMsg');
-  const toastStack = document.getElementById('toastStack');
+  const signInPanel = document.getElementById('signInPanel');
+  const adminContent = document.getElementById('adminContent');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const authStatus = document.getElementById('authStatus');
 
-
-  const openCamera = document.getElementById('openCamera');
-  const cameraFileInput = document.getElementById('cameraFileInput');
-  
-
-  const ACCENT = '#2F3B63';
-  // Square export to match the square mat/frame artwork (was 1000x1250,
-  // a leftover from an earlier portrait layout — that mismatch stretched
-  // the frame art in exported files, so this is fixed to match 1:1).
-  const EXPORT_W = 1000, EXPORT_H = 1000;
-  const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-  // Frame artwork now comes from Firestore ('frames' collection) + Firebase
-  // Storage, uploaded via admin.html. frameMeta holds, per frame id, the
-  // circular cutout position/size as a fraction of the square frame image
-  // (cx, cy, r) so the photo lines up with each frame's actual cutout —
-  // upload a new frame in admin.html and it appears here automatically.
-  const frameImageCache = {};
-  const frameMeta = {
-    plain: { cx:0.5, cy:0.5, r:0.43 }
-  };
-
-  let state = {
-    img:null,
-    frame:'classic',
-    zoom:1,
-    rotation:0,
-    panX:0,
-    panY:0,
-  };
-
-  let drag = { active:false, startX:0, startY:0, startPanX:0, startPanY:0 };
-  let pinch = { active:false, startDist:0, startZoom:1 };
-
-  /* ---------- toast notifications ---------- */
-  function showToast(title, message){
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.innerHTML = `<div><strong>${title}</strong>${message ? message : ''}</div>
-      <button class="toast-close" type="button" aria-label="Dismiss">&times;</button>`;
-    el.querySelector('.toast-close').addEventListener('click', ()=> el.remove());
-    toastStack.appendChild(el);
-    setTimeout(()=>{ el.remove(); }, 5000);
-  }
-
-  /* ---------- overlay drawing (shared by preview + export) ---------- */
-  function drawOverlayOn(ctx, w, h, frameId, clear){
-    if(clear !== false) ctx.clearRect(0,0,w,h);
-
-    if(frameId === 'plain') return;
-
-    const frameImg = frameImageCache[frameId];
-    if(!frameImg || !frameImg.complete || !frameImg.naturalWidth) return;
-
-    // Frame artwork is a full square image; draw it edge-to-edge so its
-    // own cutout (see frameMeta) lines up with the photo underneath.
-    ctx.drawImage(frameImg, 0, 0, w, h);
-  }
-
-    function drawOverlay(){
-    const rect = mat.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    overlayCanvas.width = rect.width*dpr;
-    overlayCanvas.height = rect.height*dpr;
-    overlayCanvas.style.width = rect.width+'px';
-    overlayCanvas.style.height = rect.height+'px';
-    const ctx = overlayCanvas.getContext('2d');
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.scale(dpr,dpr);
-    drawOverlayOn(ctx, rect.width, rect.height, state.frame);
-  }
-
-  function drawFramePreview(){
-    // The visible dropdown uses the real frame image thumbnails.
-    // Keep this function for compatibility with the rest of the app.
-    updateFramePickerUI();
-  }
-
-  function currentFrameMeta(){
-    return frameMeta[state.frame] || frameMeta.plain;
-  }
-
-  function layoutClip(){
-    // Every frame masks the photo to a circle; cx/cy/r (fractions of the
-    // square mat) come from the selected frame's own cutout geometry.
-    const rect = mat.getBoundingClientRect();
-    const m = currentFrameMeta();
-    const size = Math.min(rect.width, rect.height);
-    const d = size * m.r * 2;
-    const cx = rect.width * m.cx;
-    const cy = rect.height * m.cy;
-    clip.style.width = d+'px';
-    clip.style.height = d+'px';
-    clip.style.left = (cx - d/2)+'px';
-    clip.style.top = (cy - d/2)+'px';
-  }
-
-  /* ---------- image placement ---------- */
-  function baseScale(){
-    if(!state.img) return 1;
-    const rect = mat.getBoundingClientRect();
-    const m = currentFrameMeta();
-    const size = Math.min(rect.width, rect.height) * m.r * 2;
-    return Math.max(size/state.img.naturalWidth, size/state.img.naturalHeight);
-  }
-
-  function renderImage(){
-    if(!state.img) return;
-    const bs = baseScale();
-    const scale = bs*state.zoom;
-    const w = state.img.naturalWidth*scale;
-    const h = state.img.naturalHeight*scale;
-    photoImg.style.width = w+'px';
-    photoImg.style.height = h+'px';
-    photoImg.style.marginLeft = (-w/2)+'px';
-    photoImg.style.marginTop = (-h/2)+'px';
-    photoImg.style.transform = `translate(${state.panX}px, ${state.panY}px) rotate(${state.rotation}deg)`;
-  }
-
-
-  /*------open camera----*/
-  openCamera.addEventListener('click', () => {
-    cameraFileInput.click();
+  document.getElementById('signInBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    authStatus.textContent = 'Signing in…';
+    authStatus.className = 'status pending';
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+    }catch(err){
+      authStatus.textContent = 'Sign-in failed: ' + (err.message || err.code);
+      authStatus.className = 'status error';
+    }
   });
 
-  
+  signOutBtn.addEventListener('click', ()=> signOut(auth));
 
-  function clampPan(){
-    const rect = mat.getBoundingClientRect();
-    const maxOff = Math.max(rect.width, rect.height) * 1.1;
-    state.panX = Math.max(-maxOff, Math.min(maxOff, state.panX));
-    state.panY = Math.max(-maxOff, Math.min(maxOff, state.panY));
-  }
-
-  /* ---------- controls enable/disable ---------- */
-  function setControlsEnabled(on){
-    zoomRange.disabled = !on;
-    rotRange.disabled = !on;
-    resetBtn.disabled = !on;
-    removeBtn.disabled = !on;
-    downloadBtn.disabled = !on;
-    shareBtn.disabled = !on;
-  }
-
-  function setStatus(msg){
-    statusMsg.textContent = msg;
-    if(msg){ setTimeout(()=>{ if(statusMsg.textContent===msg) statusMsg.textContent=''; }, 3200); }
-  }
-
-  /* ---------- frame image dropdown ---------- */
-  const framePicker = document.getElementById('framePicker');
-  const framePickerButton = document.getElementById('framePickerButton');
-  const frameOptions = document.getElementById('frameOptions');
-  const frameSelected = document.getElementById('frameSelected');
-  // Recomputed each time rather than captured once, since frame buttons
-  // are added dynamically after the Firestore fetch resolves.
-  function getFrameOptionButtons(){
-    return [...frameOptions.querySelectorAll('.frame-option')];
-  }
-
-  function updateFramePickerUI(){
-    const frameOptionButtons = getFrameOptionButtons();
-    const selected = frameOptionButtons.find(btn => btn.dataset.value === state.frame);
-    if(!selected) return;
-
-    frameOptionButtons.forEach(btn=>{
-      const active = btn.dataset.value === state.frame;
-      btn.classList.toggle('active', active);
-      btn.setAttribute('aria-selected', active ? 'true' : 'false');
-    });
-
-    frameSelected.innerHTML = selected.innerHTML;
-    const img = frameSelected.querySelector('img');
-    if(img){
-      img.style.width = '34px';
-      img.style.height = '34px';
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      signInPanel.classList.add('hidden');
+      adminContent.classList.remove('hidden');
+      signOutBtn.classList.remove('hidden');
+      loadFramesTable();
     } else {
-      const plain = frameSelected.querySelector('.plain-preview');
-      if(plain){
-        plain.style.width = '34px';
-        plain.style.height = '34px';
-      }
-    }
-  }
-
-  function setFrame(frameId){
-    state.frame = frameId;
-    frameSelect.value = frameId;
-    updateFramePickerUI();
-    framePicker.classList.remove('open');
-    framePickerButton.setAttribute('aria-expanded','false');
-    drawOverlay();
-  }
-
-  framePickerButton.addEventListener('click', ()=>{
-    const open = framePicker.classList.toggle('open');
-    framePickerButton.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-
-  // Event delegation: works for the static "plain" button AND any frame
-  // buttons added later once Firestore data arrives.
-  frameOptions.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.frame-option');
-    if(btn) setFrame(btn.dataset.value);
-  });
-
-  document.addEventListener('click', (e)=>{
-    if(!framePicker.contains(e.target)){
-      framePicker.classList.remove('open');
-      framePickerButton.setAttribute('aria-expanded','false');
+      signInPanel.classList.remove('hidden');
+      adminContent.classList.add('hidden');
+      signOutBtn.classList.add('hidden');
     }
   });
 
-  framePickerButton.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){
-      framePicker.classList.remove('open');
-      framePickerButton.setAttribute('aria-expanded','false');
-    }
-  });
+  /* ---------- upload + auto-detect cutout ---------- */
+  const frameFile = document.getElementById('frameFile');
+  const previewWrap = document.getElementById('previewWrap');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const cxField = document.getElementById('cxField');
+  const cyField = document.getElementById('cyField');
+  const rField = document.getElementById('rField');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const frameLabel = document.getElementById('frameLabel');
 
-  /* ---------- file upload with validation ---------- */
-  chooseBtn.addEventListener('click', ()=> fileInput.click());
-  fileInput.addEventListener('change', handleFileSelected);
-  cameraFileInput.addEventListener('change', handleFileSelected);
+  let pendingFile = null;
+  let pendingImg = null;
 
-  function handleFileSelected(e){
-    const file = e.target.files[0];
+  frameFile.addEventListener('change', ()=>{
+    const file = frameFile.files[0];
     if(!file) return;
-
-    if(!file.type.startsWith('image/')){
-      showToast('Only image files are supported', 'Please upload a JPG, PNG or WEBP photo — video and other file types can\'t be used here.');
-      e.target.value = '';
-      return;
-    }
-    if(file.size > MAX_FILE_BYTES){
-      const sizeMB = (file.size/(1024*1024)).toFixed(1);
-      showToast('Photo is too large', `This file is ${sizeMB} MB. Please upload an image under 5 MB.`);
-      e.target.value = '';
-      return;
-    }
-
+    pendingFile = file;
     const reader = new FileReader();
     reader.onload = (ev)=>{
       const img = new Image();
       img.onload = ()=>{
-        state.img = img;
-        state.zoom = 1; state.rotation = 0; state.panX = 0; state.panY = 0;
-        photoImg.src = ev.target.result;
-        emptyState.style.display = 'none';
-        zoomRange.value = 1; rotRange.value = 0;
-        zoomValue.textContent = '1.0×'; rotValue.textContent = '0°';
-        setControlsEnabled(true);
-        layoutClip();
-        renderImage();
-        drawOverlay();
-        setStatus('Photo loaded');
-      };
-      img.onerror = ()=>{
-        showToast('Could not read that file', 'The image appears to be corrupted. Please try a different photo.');
+        pendingImg = img;
+        detectAndPreview(img);
       };
       img.src = ev.target.result;
     };
-    reader.onerror = ()=>{
-      showToast('Upload failed', 'Something went wrong reading that file. Please try again.');
-    };
     reader.readAsDataURL(file);
-    e.target.value = '';
-  }
-
-  /* ---------- sliders ---------- */
-  zoomRange.addEventListener('input', ()=>{
-    state.zoom = parseFloat(zoomRange.value);
-    zoomValue.textContent = state.zoom.toFixed(1)+'×';
-    renderImage();
-  });
-  rotRange.addEventListener('input', ()=>{
-    state.rotation = parseFloat(rotRange.value);
-    rotValue.textContent = Math.round(state.rotation)+'°';
-    renderImage();
   });
 
-  /* ---------- drag to reposition ---------- */
-  mat.addEventListener('pointerdown', (e)=>{
-    if(!state.img) return;
-    drag.active = true;
-    mat.classList.add('dragging');
-    drag.startX = e.clientX; drag.startY = e.clientY;
-    drag.startPanX = state.panX; drag.startPanY = state.panY;
-    mat.setPointerCapture(e.pointerId);
-  });
-  mat.addEventListener('pointermove', (e)=>{
-    if(!drag.active) return;
-    state.panX = drag.startPanX + (e.clientX - drag.startX);
-    state.panY = drag.startPanY + (e.clientY - drag.startY);
-    clampPan();
-    renderImage();
-  });
-  ['pointerup','pointercancel','pointerleave'].forEach(evt=>{
-    mat.addEventListener(evt, ()=>{ drag.active = false; mat.classList.remove('dragging'); });
-  });
+  function detectAndPreview(img){
+    // Draw at full resolution off-screen to scan alpha accurately.
+    const work = document.createElement('canvas');
+    work.width = img.naturalWidth;
+    work.height = img.naturalHeight;
+    const wctx = work.getContext('2d', { willReadFrequently:true });
+    wctx.drawImage(img, 0, 0);
 
-  /* ---------- pinch to zoom (touch) ---------- */
-  mat.addEventListener('touchstart', (e)=>{
-    if(e.touches.length === 2 && state.img){
-      pinch.active = true;
-      pinch.startDist = touchDist(e.touches);
-      pinch.startZoom = state.zoom;
-    }
-  }, {passive:true});
-  mat.addEventListener('touchmove', (e)=>{
-    if(pinch.active && e.touches.length === 2){
-      const dist = touchDist(e.touches);
-      let z = pinch.startZoom * (dist/pinch.startDist);
-      z = Math.max(1, Math.min(3, z));
-      state.zoom = z;
-      zoomRange.value = z;
-      zoomValue.textContent = z.toFixed(1)+'×';
-      renderImage();
-    }
-  }, {passive:true});
-  mat.addEventListener('touchend', (e)=>{
-    if(e.touches.length < 2) pinch.active = false;
-  });
-  function touchDist(touches){
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-
-  /* ---------- reset / remove ---------- */
-  resetBtn.addEventListener('click', ()=>{
-    state.zoom = 1; state.rotation = 0; state.panX = 0; state.panY = 0;
-    zoomRange.value = 1; rotRange.value = 0;
-    zoomValue.textContent = '1.0×'; rotValue.textContent = '0°';
-    renderImage();
-    setStatus('Reset');
-  });
-  removeBtn.addEventListener('click', ()=>{
-    state.img = null;
-    photoImg.src = '';
-    photoImg.style.transform = '';
-    emptyState.style.display = 'flex';
-    setControlsEnabled(false);
-    setStatus('Photo removed');
-  });
-
-  /* ---------- export to canvas ---------- */
-  function buildExportCanvas(){
-    const canvas = document.createElement('canvas');
-    canvas.width = EXPORT_W;
-    canvas.height = EXPORT_H;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#F3EEE2';
-    ctx.fillRect(0,0,EXPORT_W,EXPORT_H);
-
-    const m = currentFrameMeta();
-    const rCx = EXPORT_W * m.cx;
-    const rCy = EXPORT_H * m.cy;
-    const rR = Math.min(EXPORT_W, EXPORT_H) * m.r;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(rCx, rCy, rR, 0, Math.PI*2);
-    ctx.clip();
-
-    const rect = mat.getBoundingClientRect();
-    const k = EXPORT_W/rect.width;
-    const bs = baseScale();
-    const scale = bs*state.zoom*k;
-    const w = state.img.naturalWidth*scale;
-    const h = state.img.naturalHeight*scale;
-    ctx.translate(EXPORT_W/2 + state.panX*k, EXPORT_H/2 + state.panY*k);
-    ctx.rotate(state.rotation*Math.PI/180);
-    ctx.drawImage(state.img, -w/2, -h/2, w, h);
-    ctx.restore();
-
-    // overlay art on top (don't clear — that would erase the photo just drawn)
-    drawOverlayOn(ctx, EXPORT_W, EXPORT_H, state.frame, false);
-
-    return canvas;
-  }
-
-  function preloadFrameImage(id, url){
-    return new Promise((resolve)=>{
-      const img = new Image();
-      // Frame files live in Firebase Storage, a different origin — request
-      // them CORS-enabled so the canvas they're drawn into stays exportable.
-      img.crossOrigin = 'anonymous';
-      img.onload = ()=>{
-        frameImageCache[id] = img;
-        resolve();
-        drawOverlay();
-      };
-      img.onerror = ()=>{
-        console.warn('Could not load frame image:', url);
-        resolve();
-      };
-      img.src = url;
-    });
-  }
-
-  function addFrameOption(frame){
-    // frame: { id, label, url, cx, cy, r }
-    frameMeta[frame.id] = { cx:frame.cx, cy:frame.cy, r:frame.r };
-
-    const opt = document.createElement('option');
-    opt.value = frame.id;
-    opt.textContent = frame.label;
-    frameSelect.appendChild(opt);
-
-    const btn = document.createElement('button');
-    btn.className = 'frame-option';
-    btn.type = 'button';
-    btn.dataset.value = frame.id;
-    btn.setAttribute('role','option');
-    btn.setAttribute('aria-selected','false');
-    btn.innerHTML = `<img src="${frame.url}" alt="${frame.label} frame"><span>${frame.label}</span>`;
-    frameOptions.appendChild(btn);
-  }
-
-  let frameImagesReady = Promise.resolve();
-
-  async function loadFramesFromFirebase(){
-    const statusEl = document.getElementById('frameOptionsStatus');
+    let cx = 0.5, cy = 0.5, r = 0.43;
     try{
-      const q = query(
-        collection(db, 'frames'),
-        where('active', '==', true),
-        orderBy('order', 'asc')
-      );
-      const snap = await getDocs(q);
-
-      if(snap.empty){
-        if(statusEl) statusEl.textContent = 'No frames uploaded yet — add some in admin.html.';
-        return;
+      const { width, height } = work;
+      const data = wctx.getImageData(0, 0, width, height).data;
+      let minX = width, maxX = 0, minY = height, maxY = 0, found = false;
+      const step = 2; // sample every other pixel for speed
+      for(let y = 0; y < height; y += step){
+        for(let x = 0; x < width; x += step){
+          const a = data[(y*width + x)*4 + 3];
+          if(a < 10){
+            found = true;
+            if(x < minX) minX = x;
+            if(x > maxX) maxX = x;
+            if(y < minY) minY = y;
+            if(y > maxY) maxY = y;
+          }
+        }
       }
+      if(found){
+        cx = (minX + maxX) / 2 / width;
+        cy = (minY + maxY) / 2 / height;
+        r = ((maxX - minX) / width + (maxY - minY) / height) / 4;
+      }
+    }catch(err){
+      console.warn('Cutout auto-detect failed, using default circle:', err);
+    }
 
-      const frames = snap.docs.map(d=>{
-        const data = d.data();
-        return {
-          id: d.id,
-          label: data.label || 'Frame',
-          url: data.imageUrl,
-          cx: typeof data.cx === 'number' ? data.cx : 0.5,
-          cy: typeof data.cy === 'number' ? data.cy : 0.5,
-          r:  typeof data.r  === 'number' ? data.r  : 0.43,
-        };
+    cxField.value = cx.toFixed(3);
+    cyField.value = cy.toFixed(3);
+    rField.value = r.toFixed(3);
+
+    drawPreview(img, cx, cy, r);
+    previewWrap.classList.remove('hidden');
+    uploadBtn.disabled = false;
+  }
+
+  function drawPreview(img, cx, cy, r){
+    const ctx = previewCanvas.getContext('2d');
+    const size = previewCanvas.width;
+    ctx.clearRect(0,0,size,size);
+    ctx.drawImage(img, 0, 0, size, size);
+    ctx.strokeStyle = '#ff5555';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(size*cx, size*cy, size*r, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  [cxField, cyField, rField].forEach(f=>{
+    f.addEventListener('input', ()=>{
+      if(!pendingImg) return;
+      drawPreview(pendingImg, parseFloat(cxField.value)||0.5, parseFloat(cyField.value)||0.5, parseFloat(rField.value)||0.43);
+    });
+  });
+
+  uploadBtn.addEventListener('click', async ()=>{
+    if(!pendingFile){ return; }
+    const label = frameLabel.value.trim() || pendingFile.name.replace(/\.[^.]+$/, '');
+    const cx = parseFloat(cxField.value) || 0.5;
+    const cy = parseFloat(cyField.value) || 0.5;
+    const r  = parseFloat(rField.value)  || 0.43;
+
+    uploadBtn.disabled = true;
+    uploadStatus.textContent = 'Uploading…';
+    uploadStatus.className = 'status pending';
+
+    try{
+      const safeName = pendingFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `frames/${Date.now()}_${safeName}`;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, pendingFile, { contentType: pendingFile.type || 'image/png' });
+      const imageUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'frames'), {
+        label, imageUrl, storagePath,
+        cx, cy, r,
+        active: true,
+        order: Date.now(),
+        createdAt: serverTimestamp(),
       });
 
-      if(statusEl) statusEl.remove();
-      frames.forEach(addFrameOption);
-      frameImagesReady = Promise.all(frames.map(f => preloadFrameImage(f.id, f.url)));
-      await frameImagesReady;
-      layoutClip();
-      renderImage();
-      drawOverlay();
+      uploadStatus.textContent = 'Uploaded — it will appear in the app now.';
+      uploadStatus.className = 'status ok';
+      frameLabel.value = '';
+      frameFile.value = '';
+      previewWrap.classList.add('hidden');
+      pendingFile = null; pendingImg = null;
+      loadFramesTable();
     }catch(err){
-      console.error('Failed to load frames from Firebase:', err);
-      if(statusEl){
-        statusEl.textContent = 'Could not load frames — check your connection and try reloading.';
-        statusEl.classList.add('error');
-      }
-      showToast('Could not load frames', 'There was a problem reaching Firebase. Uploaded photos and "Plain circle" still work.');
+      console.error(err);
+      uploadStatus.textContent = 'Upload failed: ' + (err.message || err.code);
+      uploadStatus.className = 'status error';
+    }finally{
+      uploadBtn.disabled = false;
     }
-  }
-
-  async function exportBlob(){
-    await frameImagesReady;
-    return new Promise((resolve)=>{
-      const canvas = buildExportCanvas();
-      canvas.toBlob((blob)=> resolve(blob), 'image/png', 0.95);
-    });
-  }
-
-  downloadBtn.addEventListener('click', async ()=>{
-    if(!state.img) return;
-    const blob = await exportBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'dp-photo.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    setStatus('Image downloaded');
   });
 
-  /* ---------- WhatsApp share ---------- */
-  shareBtn.addEventListener('click', async ()=>{
-    if(!state.img) return;
-    const blob = await exportBlob();
-    const file = new File([blob], 'dp-photo.png', { type:'image/png' });
-    const message = 'Here is my new DP!';
+  /* ---------- existing frames table ---------- */
+  const tbody = document.getElementById('framesTableBody');
 
-    if(navigator.canShare && navigator.canShare({ files:[file] })){
-      try{
-        await navigator.share({ files:[file], text:message });
-        setStatus('Shared');
+  async function loadFramesTable(){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Loading…</td></tr>';
+    try{
+      const snap = await getDocs(query(collection(db, 'frames'), orderBy('order','asc')));
+      if(snap.empty){
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No frames uploaded yet.</td></tr>';
         return;
-      }catch(err){
-        // user cancelled or share failed — fall through to link fallback
       }
+      tbody.innerHTML = '';
+      snap.forEach(docSnap=>{
+        const f = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><img src="${f.imageUrl}" alt=""></td>
+          <td>${f.label || '(untitled)'}</td>
+          <td><input type="checkbox" ${f.active ? 'checked' : ''} data-id="${docSnap.id}" class="activeToggle" /></td>
+          <td class="frame-actions">
+            <button class="btn btn-danger btn-small" data-id="${docSnap.id}" data-path="${f.storagePath || ''}">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('.activeToggle').forEach(cb=>{
+        cb.addEventListener('change', async ()=>{
+          await updateDoc(doc(db, 'frames', cb.dataset.id), { active: cb.checked });
+        });
+      });
+
+      tbody.querySelectorAll('.btn-danger').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          if(!confirm('Delete this frame? This can\'t be undone.')) return;
+          btn.disabled = true;
+          try{
+            if(btn.dataset.path){
+              try{ await deleteObject(ref(storage, btn.dataset.path)); }
+              catch(e){ console.warn('Storage file already gone or missing:', e); }
+            }
+            await deleteDoc(doc(db, 'frames', btn.dataset.id));
+            loadFramesTable();
+          }catch(err){
+            console.error(err);
+            alert('Could not delete: ' + (err.message || err.code));
+            btn.disabled = false;
+          }
+        });
+      });
+    }catch(err){
+      console.error(err);
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Could not load frames.</td></tr>';
     }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'dp-photo.png';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-
-    const phone = phoneInput.value.replace(/\D/g,'');
-    const code = countryCode.value;
-    const target = phone ? `${code}${phone}` : '';
-    const text = encodeURIComponent(message + ' (photo downloaded — attach it here)');
-    const waUrl = target
-      ? `https://wa.me/${target}?text=${text}`
-      : `https://wa.me/?text=${text}`;
-    window.open(waUrl, '_blank');
-    setStatus('Image downloaded — attach it in WhatsApp');
-  });
-
-  /* ---------- resize ---------- */
-  window.addEventListener('resize', ()=>{
-    layoutClip();
-    drawOverlay();
-    renderImage();
-  });
-
-  /* ---------- init ---------- */
-  layoutClip();
-  updateFramePickerUI();
-  drawOverlay();
-  loadFramesFromFirebase();
+  }
 </script>
 </body>
 </html>
